@@ -217,3 +217,36 @@ func TestMessageService_Get(t *testing.T) {
 		t.Errorf("Messages.Get returned %+v, want %+v", m.ID, want.ID)
 	}
 }
+
+func TestMessageService_Edit(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/flows/orgname/flowname/messages/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PUT")
+		fmt.Fprint(w, `{}`)
+	})
+
+	opts := &MessagesEditOptions{
+		Content: "new content",
+	}
+
+	_, err := client.Messages.Edit("orgname", "flowname", 1, opts)
+	if err != nil {
+		t.Errorf("Messages.Edit returned error: %v", err)
+	}
+}
+
+func TestMessageService_Delete(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/flows/orgname/flowname/messages/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "DELETE")
+	})
+
+	_, err := client.Messages.Delete("orgname", "flowname", 1)
+	if err != nil {
+		t.Errorf("Messages.Delete returned error: %v", err)
+	}
+}

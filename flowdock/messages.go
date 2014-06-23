@@ -113,6 +113,35 @@ func (s *MessagesService) Get(org, flowName string, id int) (*Message, *http.Res
 	return message, resp, err
 }
 
+type MessagesEditOptions struct {
+	Content string   `url:"content,omitempty"`
+	Tags    []string `url:"tags,comma,omitempty"`
+}
+
+func (s *MessagesService) Edit(org, flowName string, id int, opt *MessagesEditOptions) (*http.Response, error) {
+	u := fmt.Sprintf("/flows/%s/%s/messages/%d", org, flowName, id)
+
+	u, err := addOptions(u, opt)
+	if err != nil {
+		return nil, err
+	}
+	req, err := s.client.NewRequest("PUT", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(req, nil)
+}
+
+func (s *MessagesService) Delete(org, flowName string, id int) (*http.Response, error) {
+	u := fmt.Sprintf("/flows/%s/%s/messages/%d", org, flowName, id)
+	req, err := s.client.NewRequest("DELETE", u, nil)
+	if err != nil {
+		return nil, err
+	}
+	return s.client.Do(req, nil)
+}
+
 // MessagesCreateOptions specifies the optional parameters to the
 // MessageService.Create method.
 type MessagesCreateOptions struct {
@@ -189,6 +218,7 @@ type Message struct {
 //
 // It can be a MessageContent, CommentContent, etc. Depends on the Event
 func (m *Message) Content() (content Content) {
+
 	switch *m.Event {
 	case "message":
 		content = new(MessageContent)
