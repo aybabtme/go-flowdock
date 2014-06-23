@@ -93,6 +93,26 @@ func (s *MessagesService) List(org, flow string, opt *MessagesListOptions) ([]Me
 	return messages, resp, err
 }
 
+// Get a single message by ID.
+//
+// Flowdock API docs: https://www.flowdock.com/api/messages
+func (s *MessagesService) Get(org, flowName string, id int) (*Message, *http.Response, error) {
+	u := fmt.Sprintf("flows/%v/%v/messages/%d", org, flowName, id)
+
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	message := new(Message)
+	resp, err := s.client.Do(req, message)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return message, resp, err
+}
+
 // MessagesCreateOptions specifies the optional parameters to the
 // MessageService.Create method.
 type MessagesCreateOptions struct {

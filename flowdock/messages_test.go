@@ -195,3 +195,25 @@ func TestCommentContent_String(t *testing.T) {
 		t.Errorf("Messages.Create returned %+v, want %+v", *content.Text, want)
 	}
 }
+
+func TestMessageService_Get(t *testing.T) {
+	setup()
+	defer teardown()
+
+	wantID := 1
+
+	mux.HandleFunc("/flows/orgname/flowname/messages/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, `{"id":1}`)
+	})
+
+	m, _, err := client.Messages.Get("orgname", "flowname", wantID)
+	if err != nil {
+		t.Errorf("Messages.Get returned error: %v", err)
+	}
+
+	want := Message{ID: &wantID}
+	if !reflect.DeepEqual(m.ID, want.ID) {
+		t.Errorf("Messages.Get returned %+v, want %+v", m.ID, want.ID)
+	}
+}
