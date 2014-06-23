@@ -169,7 +169,7 @@ func sortedKeys(m *map[string]int) *[]string {
 func AuthenticationRequest(c *cli.Context) *http.Client {
 	// Set up a configuration.
 	config := &oauth.Config{
-		ClientId:     c.String("id"),
+		ClientID:     c.String("id"),
 		ClientSecret: c.String("secret"),
 		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
 		Scope:        "",

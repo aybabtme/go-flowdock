@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	clientId     = flag.String("id", "", "Client ID")
+	clientID     = flag.String("id", "", "Client ID")
 	clientSecret = flag.String("secret", "", "Client Secret")
 	scope        = flag.String("scope", "flow private manage profile offline_access", "OAuth scope")
 	redirectURL  = flag.String("redirect_url", "urn:ietf:wg:oauth:2.0:oob", "Redirect URL")
@@ -39,7 +39,7 @@ func AuthenticationRequest() *http.Client {
 
 	// Set up a configuration.
 	config := &oauth.Config{
-		ClientId:     *clientId,
+		ClientID:     *clientID,
 		ClientSecret: *clientSecret,
 		RedirectURL:  *redirectURL,
 		Scope:        *scope,
@@ -54,7 +54,7 @@ func AuthenticationRequest() *http.Client {
 	// Try to pull the token from the cache; if this fails, we need to get one.
 	token, err := config.TokenCache.Token()
 	if err != nil {
-		if *clientId == "" || *clientSecret == "" {
+		if *clientID == "" || *clientSecret == "" {
 			flag.Usage()
 			fmt.Fprint(os.Stderr, usageMsg)
 			os.Exit(2)
