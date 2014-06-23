@@ -21,8 +21,8 @@ type MessagesService struct {
 type MessagesListOptions struct {
 	Event   string   `url:"event,omitempty"`
 	Limit   int      `url:"limit,omitempty"`
-	SinceId int      `url:"since_id,omitempty"`
-	UntilId int      `url:"until_id,omitempty"`
+	SinceID int      `url:"since_id,omitempty"`
+	UntilID int      `url:"until_id,omitempty"`
 	Tags    []string `url:"tags,comma,omitempty"`
 	TagMode string   `url:"tag_mode,omitempty"`
 	Search  string   `url:"search,omitempty"`
@@ -46,15 +46,21 @@ func (s *MessagesService) Stream(token, org, flow string) (chan Message, *events
 	es := eventsource.New(req, retryDuration)
 
 	go func() {
+		defer es.Close()
 		for {
 			event, err := es.Read()
 
 			if err != nil {
-				// TODO panic or add error channel!
+				s.client.Log.Printf("failed to read Stream eventsource: %v", err)
+				return
 			}
 
 			m := new(Message)
 			err = json.Unmarshal([]byte(event.Data), m)
+			if err != nil {
+				s.client.Log.Printf("bad JSON data from Stream eventsource: %v", err)
+				return
+			}
 			messageCh <- *m
 		}
 	}()
@@ -62,7 +68,7 @@ func (s *MessagesService) Stream(token, org, flow string) (chan Message, *events
 	return messageCh, es, err
 }
 
-// Lists the messages for the given flow.
+// List of the messages for the given flow.
 //
 // Flowdock API docs: https://www.flowdock.com/api/messages
 func (s *MessagesService) List(org, flow string, opt *MessagesListOptions) ([]Message, *http.Response, error) {
@@ -78,13 +84,13 @@ func (s *MessagesService) List(org, flow string, opt *MessagesListOptions) ([]Me
 		return nil, nil, err
 	}
 
-	messages := new([]Message)
-	resp, err := s.client.Do(req, messages)
+	var messages []Message
+	resp, err := s.client.Do(req, &messages)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return *messages, resp, err
+	return messages, resp, err
 }
 
 // MessagesCreateOptions specifies the optional parameters to the
@@ -102,7 +108,7 @@ type MessagesCreateOptions struct {
 	Source           string   `url:"source,omitempty"`
 }
 
-// Create a comment for the specified organization
+// CreateComment for the specified organization
 //
 // Flowdock API docs: https://www.flowdock.com/api/messages
 func (s *MessagesService) CreateComment(opt *MessagesCreateOptions) (*Message, *http.Response, error) {
@@ -159,7 +165,7 @@ type Message struct {
 	App              *string          `json:"app,omitempty"` // deprecated
 }
 
-// Return the content of a Message
+// Content of a Message
 //
 // It can be a MessageContent, CommentContent, etc. Depends on the Event
 func (m *Message) Content() (content Content) {

@@ -1,4 +1,4 @@
-// Golang Flowdock client (REST API)
+// Package flowdock implements a client for the Flowdock APIs.
 package flowdock
 
 import (
@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/google/go-querystring/query"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 )
 
@@ -36,6 +38,8 @@ type Client struct {
 	// User agent used when communicating with the Flowdock API.
 	UserAgent string
 
+	Log *log.Logger
+
 	// Services used for talking to different parts of the Flowdock API.
 	Flows         *FlowsService
 	Messages      *MessagesService
@@ -50,6 +54,7 @@ func newClient(httpClient *http.Client, baseURL, streamURL *url.URL) *Client {
 		RestURL:   baseURL,
 		StreamURL: streamURL,
 		UserAgent: userAgent,
+		Log:       log.New(os.Stderr, "[flowdock]", log.Llongfile|log.Ltime),
 	}
 
 	c.Flows = &FlowsService{client: c}
@@ -137,7 +142,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	err = CheckResponse(resp)
 	if err != nil {
